@@ -6,9 +6,6 @@ Bisulfite Amplicon Pipeline. Started January 2023.
 
 Contributors:
 Anthony Pompetti <apompetti@coriell.org>
-
-Methodology adapted from:
-prior snakemake pipeline developed by Matthew Walt
 */
 
 /*
@@ -23,6 +20,7 @@ params.outdir = "./results"
 params.pubdir = "trim_galore"
 params.singleEnd = false
 params.min_length = 20
+
 /*
 Run trim_galore on each read stored within the reads_ch channel
 */
@@ -31,13 +29,13 @@ process trim_galore {
     memory '8 GB'
     cpus 4
 
-    publishDir "${params.outdir}/trim_galore", mode: 'copy'
+    publishDir "${params.outdir}/${params.pubdir}", mode: 'copy'
 
     input:
     tuple val(file_id), path(reads)
 
     output:
-    tuple val(file_id), path("*.fq.gz")
+    tuple val(file_id), path("*.fq.gz"), emit: trimmed_reads
     path("*trimming_report.txt"), emit: trimming_report
 
     script:
@@ -45,7 +43,6 @@ process trim_galore {
     """
     trim_galore \
     --length ${params.min_length} \
-    --phred33 \
     --cores ${task.cpus} \
     $reads
     """

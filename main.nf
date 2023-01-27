@@ -17,7 +17,8 @@ Enable Nextflow DSL2
 nextflow.enable.dsl=2
 
 //Configurable variables for pipeline
-params.reads = "${workflow.projectDir}/fastq/*{_R,_}{1,2}*.{fastq,fq}.gz"
+params.fastq_folder = "${workflow.projectDir}/fastq"
+params.reads = "${params.fastq_folder}/*{_R,_}{1,2}*.{fastq,fq}.gz"
 params.singleEnd = false
 params.multiqc_config = "${workflow.projectDir}/multiqc_config.yaml"
 params.genome = false
@@ -27,6 +28,8 @@ params.db = params.genomes ? params.genomes[ params.genome ].db ?:false : false
 include { fastqc as pretrim_fastqc } from './modules/fastqc.nf' addParams(pubdir: '01_pretrim_fastqc')
 include { trim_galore } from './modules/trim_galore.nf' addParams(pubdir: '02_trim')
 include { fastqc as posttrim_fastqc } from './modules/fastqc.nf' addParams(pubdir: '03_posttrim_fastqc')
+include { align_rna } from './modules/align_rna.nf' addParams(pubdir: '02b_align_rna')
+include { multiqc} from './modules/multiqc.nf'
 
 //Create channel for reads. By default, auto-detects paired end data. Specify --singleEnd if your fastq files are in single-end format
 Channel
@@ -38,11 +41,18 @@ workflow {
 
     //Run fastqc on raw reads
     pretrim_fastqc(reads_ch)
+
     //Run trim_galore on raw reads
     trim_galore(reads_ch)
 
-    //Run fastqc on trimmed reads, specifies trim_galore[0] because second input channel is not need for this process
-    posttrim_fastqc(trim_galore.out[0])
-    
-    
+    //Run fastqc on trimmed reads, specifies trim_galore[0] because second input channel is not needed for this process
+    posttrim_fastqc(trim_galore.out.trimmed_reads)
+
+    //Compile fastqc reports 
+    multiqc("${params.multiqc_config}", pretrim_fastqc.out.collect().combine(posttrim_fastqc.out.collect()))
+
+    //Align RNA-seq reads to GRCm39 transcriptome
+    //align_rna(trim_galore.out.trimmed_reads)
+
+
 }
