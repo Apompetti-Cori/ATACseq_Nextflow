@@ -35,7 +35,7 @@ include { multiqc} from './modules/multiqc.nf'
 Channel
 .fromFilePairs(params.reads, size: params.singleEnd ? 1 : 2)
 .ifEmpty {exit 1, "Cannot find any reads matching ${params.reads}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --singleEnd on the command line."}
-.set{ reads_ch }
+/home/apompetti/bin.set{ reads_ch }
 
 workflow {
 
@@ -49,10 +49,8 @@ workflow {
     posttrim_fastqc(trim_galore.out.trimmed_reads)
 
     //Compile fastqc reports 
-    multiqc("${params.multiqc_config}", pretrim_fastqc.out.collect().combine(posttrim_fastqc.out.collect()))
+    multiqc("${params.multiqc_config}", pretrim_fastqc.out.collect().combine(posttrim_fastqc.out.collect()).combine(trim_galore.out.trimming_report.collect()))
 
     //Align RNA-seq reads to GRCm39 transcriptome
-    align_rna(trim_galore.out.trimmed_reads)
-
-
+    //align_rna(trim_galore.out.trimmed_reads)
 }

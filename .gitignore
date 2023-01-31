@@ -9,3 +9,6 @@ nextflow.sh
 .nextflow/
 results/
 ._multiqc_config.yaml
+fastq/*
+fastq/
+cpscript.sh
