@@ -49,7 +49,7 @@ workflow {
     posttrim_fastqc(trim_galore.out.trimmed_reads)
 
     //Compile fastqc reports 
-    multiqc("${params.multiqc_config}", pretrim_fastqc.out.collect().combine(posttrim_fastqc.out.collect()).combine(trim_galore.out.trimming_report.collect))
+    multiqc("${params.multiqc_config}", pretrim_fastqc.out.collect().combine(posttrim_fastqc.out.collect()).combine(trim_galore.out.trimming_report.collect()))
 
     //Align RNA-seq reads to GRCm39 transcriptome
     //align_rna(trim_galore.out.trimmed_reads)
